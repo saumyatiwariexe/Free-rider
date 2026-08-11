@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     
     // 2. Attempt to pull the GitHub token from Clerk (only works if signed in via GitHub)
     let githubToken = 'ghp_dummy_token_hackathon_demo123';
-    let externalId = user.email ? user.email.split('@')[0] : 'demo_dev_user';
+    const externalId = user.email ? user.email.split('@')[0] : 'demo_dev_user';
 
     try {
       // In a production app, we securely fetch the OAuth token Clerk negotiated during sign in

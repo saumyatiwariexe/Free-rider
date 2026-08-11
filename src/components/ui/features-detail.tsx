@@ -121,7 +121,7 @@ export default function FeaturesDetail() {
             {dashboardTabs.map((tab, index) => {
               const position = index - currentSlide;
               const isActive = position === 0;
-              let zIndex = isActive ? 30 : 20 - Math.abs(position);
+              const zIndex = isActive ? 30 : 20 - Math.abs(position);
               
               // Map slides circularly so they don't jump abruptly from last to first
               let displayPosition = position;

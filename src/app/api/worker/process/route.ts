@@ -213,7 +213,7 @@ export async function POST(request: Request) {
 
         console.log(`[Worker] Auto-detecting new guest user: ${extId} on ${acct.provider}`);
         
-        let { data: existingUser } = await db.from('users').select('id').eq('clerk_id', clerkId).single();
+        const { data: existingUser } = await db.from('users').select('id').eq('clerk_id', clerkId).single();
         let userId = existingUser?.id;
 
         if (!userId) {
