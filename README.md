@@ -1,5 +1,7 @@
 # Free Rider
 
+Live: https://free-rider-irrp.vercel.app
+
 Automatic contribution tracking for group work. No self-report. No check-ins. No forms.
 
 Members link the accounts they already use to do the work — GitHub for code, Figma for design, Google Docs for writing — and the system reads what actually happened at submission time. The result is an objective Group Insight Report showing per-member contribution percentages, an activity timeline, and plain-language insights.
