@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { ArrowRight, GitBranch, FileText, PenTool, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
-const BADGE_TEXT = 'NYC CodeQuest · Batch 4 · HUMAN Track';
+
 
 const STATS = [
   { value: '3', label: 'Source Adapters', sub: 'GitHub · Figma · Google Docs' },
@@ -104,13 +104,7 @@ export default function LandingHero() {
       {/* Content */}
       <div className="hero-font relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-20 pb-24 lg:pt-28 lg:pb-32">
 
-        {/* Badge */}
-        <div className="anim-1 flex items-center gap-2 w-fit mb-8">
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs font-medium tracking-wider text-white/50">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 glow-dot" />
-            {BADGE_TEXT}
-          </span>
-        </div>
+
 
         {/* Headline */}
         <h1 className="anim-2 text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight max-w-4xl">

@@ -60,10 +60,7 @@ export default function Navbar() {
             <div className="p-1.5 bg-white/5 border border-white/10 rounded-md transition-colors group-hover:bg-white/10">
               <GitBranch size={16} className="text-white/80" />
             </div>
-            <span className="font-semibold tracking-tight text-sm text-white">Free-Rider Tracker</span>
-            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-widest uppercase bg-white/10 border border-white/10 text-white/50 ml-1">
-              Beta
-            </span>
+            <span className="font-semibold tracking-tight text-sm text-white">Free Rider</span>
           </Link>
 
           {/* Desktop Nav — public links */}

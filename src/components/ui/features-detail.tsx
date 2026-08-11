@@ -462,46 +462,6 @@ export default function FeaturesDetail() {
         </div>
       </section>
 
-      {/* ──────── CTA SECTION ──────── */}
-      <section className="section-font py-24 lg:py-32 border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-          <div className="reveal-up relative rounded-3xl border border-white/8 bg-white/[0.02] overflow-hidden p-12 lg:p-20 text-center">
-            {/* Background glow */}
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.06),transparent_70%)]" />
-            </div>
-            <div className="relative z-10">
-              <span className="inline-block text-xs font-semibold tracking-widest uppercase text-white/30 mb-6">Get started</span>
-              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white max-w-2xl mx-auto leading-tight">
-                End the free-rider problem. Right now.
-              </h2>
-              <p className="mt-5 text-white/50 text-lg max-w-xl mx-auto leading-relaxed">
-                Link your accounts in under a minute. Your group's contribution picture — objective, verifiable, and bias-free — is ready the moment you submit.
-              </p>
-              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
-                  href="/sign-up"
-                  id="cta-get-started"
-                  className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold text-black bg-white hover:bg-white/90 transition-all active:scale-95"
-                >
-                  Get started free <ArrowRight size={15} />
-                </Link>
-                <Link
-                  href="/sign-in"
-                  id="cta-sign-in"
-                  className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-medium text-white/70 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all"
-                >
-                  Sign in
-                </Link>
-              </div>
-              <p className="mt-6 text-xs text-white/25">
-                Read-only scopes only · GitHub, Figma, Google Docs · NYC CodeQuest Batch 4
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
     </div>
   );
 }
