@@ -43,7 +43,15 @@ interface WorkerPayload {
 
 // ── QStash signature verification ──────────────────────────
 
+import { auth } from '@clerk/nextjs/server';
+
 async function verifyQStashSignature(request: Request): Promise<boolean> {
+  // Allow UI fallback fetch to work if user is authenticated via Clerk
+  try {
+    const { userId } = await auth();
+    if (userId) return true;
+  } catch (e) {}
+
   // Always allow local bypass so the manual UI fetch('/api/worker/process') works in local dev
   if (process.env.NODE_ENV === 'development') {
     return true;
