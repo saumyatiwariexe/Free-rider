@@ -11,6 +11,8 @@ const PUBLIC_PREFIXES = [
   '/sign-in',
   '/sign-up',
   '/api/webhooks',
+  '/api/test',    // phase verification endpoints — remove before production
+  '/api/health',
 ];
 
 export default clerkMiddleware(async (auth, request) => {
