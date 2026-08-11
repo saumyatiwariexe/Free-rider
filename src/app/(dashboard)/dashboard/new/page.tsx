@@ -18,22 +18,39 @@ export default function NewReportPage() {
     setStatusText("Detecting group members...");
 
     const formData = new FormData(e.currentTarget);
-    const repoUrl = formData.get("repo_url") as string;
+    const repoUrl = (formData.get("repo_url") as string).trim();
+    const figmaUrl = (formData.get("figma_url") as string).trim();
+    const googleUrl = (formData.get("google_url") as string).trim();
     
-    if (!repoUrl) {
-      setError("Please provide at least a GitHub Repo URL for this snapshot.");
+    if (!repoUrl && !figmaUrl && !googleUrl) {
+      setError("Please provide at least one source tracking URL.");
       setLoading(false);
       return;
     }
+
+    let figma_file_key = figmaUrl;
+    if (figmaUrl.includes('figma.com')) {
+       const match = figmaUrl.match(/figma\.com\/(file|design)\/([a-zA-Z0-9]+)/);
+       if (match) figma_file_key = match[2];
+    }
+
+    let doc_id = googleUrl;
+    if (googleUrl.includes('docs.google.com')) {
+       const match = googleUrl.match(/document\/d\/([a-zA-Z0-9-_]+)/);
+       if (match) doc_id = match[1];
+    }
+
+    const source_refs: any = {};
+    if (repoUrl) source_refs.repo_url = repoUrl;
+    if (figma_file_key) source_refs.figma_file_key = figma_file_key;
+    if (doc_id) source_refs.doc_id = doc_id;
 
     try {
       // 1. Detect Group
       const detectRes = await fetch("/api/groups/detect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          source_refs: { repo_url: repoUrl },
-        })
+        body: JSON.stringify({ source_refs })
       });
 
       const detectData = await detectRes.json();
@@ -53,20 +70,13 @@ export default function NewReportPage() {
 
       setStatusText("Generating report...");
       
-      // In a real app we might poll, here we jump to report route and let it handle processing states
-      // We know worker runs fast if we hit our test API structure, but the real setup relies on pushing
-      // We will simulate hitting the inline test pipeline if WORKER_URL is missing, or just go to report
-      // To ensure this works cleanly, we will ping api/worker/process manually for local dev
-      
       try {
          await fetch("/api/worker/process", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ submission_id: subData.submission_id, group_id: detectData.group.id })
          });
-      } catch (e) {
-         // Silently fail, it might be dev environment where QStash is missing
-      }
+      } catch (e) {}
 
       router.push(`/report/${subData.submission_id}`);
 
@@ -90,19 +100,51 @@ export default function NewReportPage() {
       <div className="glass-panel p-8 sm:p-10">
         <form onSubmit={handleSubmit} className="space-y-6">
           
-          <div className="space-y-2">
-            <label className="text-xs tracking-widest uppercase font-bold text-white/50 ml-1">GitHub Repository URL</label>
-            <div className="relative flex items-center">
-              <Terminal size={16} className="absolute left-4 text-white/40" />
-              <input 
-                name="repo_url" 
-                type="text" 
-                placeholder="e.g. saumyatiwariexe/Free-rider"
-                className="w-full bg-black/50 border border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm font-mono focus:outline-none focus:border-white/30 transition-colors"
-                disabled={loading}
-              />
+          <div className="space-y-4">
+            {/* GitHub */}
+            <div className="space-y-2">
+              <label className="text-xs tracking-widest uppercase font-bold text-white/50 ml-1">GitHub Repository URL</label>
+              <div className="relative flex items-center">
+                <Terminal size={16} className="absolute left-4 text-white/40" />
+                <input 
+                  name="repo_url" 
+                  type="text" 
+                  placeholder="e.g. saumyatiwariexe/Free-rider"
+                  className="w-full bg-black/50 border border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm font-mono focus:outline-none focus:border-white/30 transition-colors"
+                  disabled={loading}
+                />
+              </div>
             </div>
-            <p className="text-xs text-white/30 ml-1 mt-2">Just owner/repo is sufficient. We will extract all commit lines.</p>
+
+            {/* Figma */}
+            <div className="space-y-2 pt-2">
+              <label className="text-xs tracking-widest uppercase font-bold text-white/50 ml-1">Figma File URL</label>
+              <div className="relative flex items-center">
+                <Terminal size={16} className="absolute left-4 text-white/40" />
+                <input 
+                  name="figma_url" 
+                  type="text" 
+                  placeholder="https://www.figma.com/design/..."
+                  className="w-full bg-black/50 border border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm font-mono focus:outline-none focus:border-white/30 transition-colors"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* Google Docs */}
+            <div className="space-y-2 pt-2">
+              <label className="text-xs tracking-widest uppercase font-bold text-white/50 ml-1">Google Docs URL</label>
+              <div className="relative flex items-center">
+                <Terminal size={16} className="absolute left-4 text-white/40" />
+                <input 
+                  name="google_url" 
+                  type="text" 
+                  placeholder="https://docs.google.com/document/d/..."
+                  className="w-full bg-black/50 border border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm font-mono focus:outline-none focus:border-white/30 transition-colors"
+                  disabled={loading}
+                />
+              </div>
+            </div>
           </div>
 
           {error && (
