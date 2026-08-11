@@ -21,13 +21,14 @@ export default async function DashboardPage() {
     if (clerkUser) {
       const email = clerkUser.emailAddresses[0]?.emailAddress ?? '';
       const name = `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Contributor';
-      const { data: newUser } = await db.from('users').insert({
+      // Use upsert to guarantee existing users get their avatar_url updated
+      const { data: upsertedUser } = await db.from('users').upsert({
         clerk_id: clerkId,
         email,
         name,
         avatar_url: clerkUser.imageUrl
-      }).select('id, name').single();
-      user = newUser;
+      }, { onConflict: 'clerk_id' }).select('id, name').single();
+      user = upsertedUser;
     }
 
     if (!user) {

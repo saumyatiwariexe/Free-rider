@@ -53,7 +53,9 @@ export async function GET(request: Request) {
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
-      scope: 'file_read',
+      // Modern Figma OAuth Apps require granular scopes.
+      // Based on what this app fetches, it needs versions and user profile:
+      scope: 'file_versions:read,current_user:read',
       state: clerkId, // use clerk ID as CSRF state for simplicity
       response_type: 'code',
     });

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { ArrowLeft, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import { ReportChart } from '@/components/ReportChart';
+import { GroupInsightDashboard } from '@/components/ui/dashboard-1';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,9 +47,33 @@ export default async function ReportPage({ params }: { params: Promise<{ submiss
 
   // Resolve member names
   const memberIds = Object.keys(perMemberShare);
-  const { data: members } = await db.from('users').select('id, name, email').in('id', memberIds);
+  const { data: members } = await db.from('users').select('id, name, email, avatar_url').in('id', memberIds);
   const nameMap: Record<string, string> = {};
   members?.forEach(m => { nameMap[m.id] = m.name?.split(' ')[0] ?? m.email ?? m.id });
+
+  // Calculate stats for Framer Motion Dashboard
+  let totalEventsCount = 0;
+  const providerCounts: Record<string, number> = { github: 0, figma: 0, google_docs: 0 };
+  
+  (report.timeline as any[]).forEach(day => {
+     day.events.forEach((ev: any) => {
+        totalEventsCount += ev.count;
+        if (providerCounts[ev.provider] !== undefined) {
+           providerCounts[ev.provider] += ev.count;
+        }
+     });
+  });
+
+  const parsedStats = [
+    { label: "Code", value: (providerCounts.github / (totalEventsCount || 1)) * 100, color: "bg-blue-500" },
+    { label: "Design", value: (providerCounts.figma / (totalEventsCount || 1)) * 100, color: "bg-fuchsia-500" },
+    { label: "Docs", value: (providerCounts.google_docs / (totalEventsCount || 1)) * 100, color: "bg-amber-400" }
+  ];
+
+  const teamPayload = {
+    memberCount: Object.keys(perMemberShare).length,
+    members: members?.map(m => ({ id: m.id, name: nameMap[m.id], avatarUrl: m.avatar_url })) || []
+  };
 
   return (
     <div className="flex flex-col gap-10 w-full max-w-5xl mx-auto pb-20">
@@ -68,39 +93,13 @@ export default async function ReportPage({ params }: { params: Promise<{ submiss
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         
-        {/* Left Column: Member Splits */}
-        <div className="md:col-span-1 space-y-6">
-           <h2 className="text-xs uppercase tracking-widest text-white/40 font-bold ml-1">Team Splits</h2>
-           <div className="glass-panel p-6 space-y-10">
-              {Object.entries(perMemberShare).map(([mId, shares]) => {
-                const hasContributions = Object.values(shares as Record<string, number>).some(val => val > 0);
-                
-                return (
-                  <div key={mId} className="space-y-4">
-                     <h3 className="font-semibold text-lg tracking-tight">{nameMap[mId] || 'Unknown Member'}</h3>
-                     {!hasContributions ? (
-                       <p className="text-xs text-white/30 italic pl-3 border-l text-left border-white/10">No linked contributions.</p>
-                     ) : (
-                       <div className="space-y-3 border-l-2 border-white/10 pl-4">
-                          {['github', 'figma', 'google_docs'].map(provider => {
-                             const rawVal = (shares as any)[provider];
-                             if (typeof rawVal !== 'number' || rawVal === 0) return null;
-                             const pct = Math.round(rawVal * 100);
-                             return (
-                                <div key={provider} className="flex justify-between items-center text-xs group">
-                                   <span className="text-white/40 uppercase tracking-wider group-hover:text-white/70 transition-colors">
-                                     {provider.replace('_', ' ')}
-                                   </span>
-                                   <span className="font-semibold text-white/90">{pct}%</span>
-                                </div>
-                             )
-                          })}
-                       </div>
-                     )}
-                  </div>
-                )
-              })}
-           </div>
+        {/* Left Column: Framer Motion Animated Dashboard Stats */}
+        <div className="md:col-span-1">
+           <GroupInsightDashboard 
+             title="Scope & Activity"
+             teamActivities={{ totalEvents: totalEventsCount, stats: parsedStats }}
+             team={teamPayload}
+           />
         </div>
 
         {/* Right Column: Timeline & Narratives */}

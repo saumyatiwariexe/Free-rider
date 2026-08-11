@@ -17,6 +17,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { Receiver } from '@upstash/qstash';
 import { headers } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -178,11 +179,84 @@ export async function POST(request: Request) {
     const rawEvents = await adapter.fetchRawActivity({ accessToken, sourceRef });
     console.log(`[Worker] ${acct.provider}: ${rawEvents.length} events for user ${acct.user_id}`);
 
-    for (const raw of rawEvents) {
-      const normalized = adapter.normalize(raw);
+    // --- AUTO-DETECT MISSING MEMBERS ---
+    const allNormalized = rawEvents.map(raw => adapter.normalize(raw));
+    const uniqueExtIds = [...new Set(allNormalized.map(n => n.actorExternalId))];
+    const missingExtIds = uniqueExtIds.filter(extId => !externalToUserId[`${acct.provider}::${extId}`]);
 
+    if (missingExtIds.length > 0) {
+      // 1. Recover existing users across the platform
+      const { data: existingLinks } = await db.from('linked_accounts')
+        .select('user_id, external_id')
+        .eq('provider', acct.provider)
+        .in('external_id', missingExtIds);
+
+      for (const link of existingLinks ?? []) {
+        externalToUserId[`${acct.provider}::${link.external_id}`] = link.user_id;
+
+        // Ensure group_members link
+        await db.from('group_members').upsert({ group_id, user_id: link.user_id }, { onConflict: 'group_id,user_id', ignoreDuplicates: true });
+        
+        // Add name to memberNames
+        if (!memberNames[link.user_id]) {
+          const { data: u } = await db.from('users').select('name, email, id').eq('id', link.user_id).single();
+          if (u) memberNames[link.user_id] = u.name ?? u.email ?? u.id;
+        }
+      }
+
+      // 2. Create guest users for remaining fully undiscovered actors
+      const stillMissing = missingExtIds.filter(extId => !externalToUserId[`${acct.provider}::${extId}`]);
+      for (const extId of stillMissing) {
+        const rep = allNormalized.find(n => n.actorExternalId === extId);
+        const displayName = rep?.actorDisplayName || extId;
+        const clerkId = `guest_${acct.provider}_${extId}`;
+
+        console.log(`[Worker] Auto-detecting new guest user: ${extId} on ${acct.provider}`);
+        
+        let { data: existingUser } = await db.from('users').select('id').eq('clerk_id', clerkId).single();
+        let userId = existingUser?.id;
+
+        if (!userId) {
+          const newId = crypto.randomUUID();
+          const { error: insErr } = await db.from('users').insert({
+            id: newId,
+            clerk_id: clerkId,
+            name: displayName
+          });
+          
+          if (insErr) {
+            console.error(`[Worker] Failed to insert guest user ${extId}:`, insErr);
+            continue; // Skip event attribution if db creation fails
+          }
+          userId = newId;
+        }
+
+        externalToUserId[`${acct.provider}::${extId}`] = userId;
+        memberNames[userId] = displayName;
+
+        await db.from('linked_accounts').upsert({
+           user_id: userId,
+           provider: acct.provider,
+           external_id: extId,
+           access_token_enc: 'guest_stub',
+        }, { onConflict: 'user_id,provider' });
+
+        await db.from('group_members').upsert(
+           { group_id, user_id: userId },
+           { onConflict: 'group_id,user_id', ignoreDuplicates: true }
+        );
+      }
+    }
+    // -----------------------------------
+
+    for (const normalized of allNormalized) {
       // Map actorExternalId → user_id
-      const userId = externalToUserId[`${acct.provider}::${normalized.actorExternalId}`] ?? acct.user_id;
+      const userId = externalToUserId[`${acct.provider}::${normalized.actorExternalId}`];
+
+      if (!userId) {
+        console.log(`[Worker] Unmapped actor ${normalized.actorExternalId} on ${acct.provider} — skipping event`);
+        continue;
+      }
 
       eventsToInsert.push({
         group_id,
