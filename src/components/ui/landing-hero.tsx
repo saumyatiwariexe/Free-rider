@@ -1,22 +1,9 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, Menu, X, Activity } from 'lucide-react';
+import React from 'react';
+import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LandingHero() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
   const links = ['Code', 'Design', 'Docs', 'Pricing'];
 
   return (
@@ -37,79 +24,7 @@ export default function LandingHero() {
       {/* Content Overlay */}
       <div className="relative z-10 flex flex-col flex-1 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
         
-        {/* Navigation */}
-        <nav className="flex items-center justify-between py-5 sm:py-6">
-          
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <Activity className="w-6 h-6 text-white" />
-            <span className="text-lg font-semibold tracking-wide text-white">Free-Rider</span>
-          </div>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-1 rounded-full bg-white/10 px-1.5 py-1.5 backdrop-blur-lg border border-white/5">
-              {links.map((link) => (
-                <a key={link} href="#" className="flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer">
-                  {link}
-                </a>
-              ))}
-            </div>
-            <Link href="/sign-up" className="self-stretch flex items-center rounded-full px-5 text-sm font-medium text-white bg-gradient-cta hover:opacity-90 transition-opacity backdrop-blur-lg shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-              Get started
-            </Link>
-            <Link href="/sign-in" className="px-3 text-sm font-medium text-white/50 hover:text-white transition-colors">
-              Sign in
-            </Link>
-          </div>
-
-          {/* Mobile Hamburger Button */}
-          <button 
-            className="md:hidden relative z-50 flex items-center justify-center h-10 w-10 border border-white/10 rounded-full bg-white/5 backdrop-blur-lg text-white cursor-pointer"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            <Menu className={"absolute w-5 h-5 transition-all duration-300 " + (isOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100")} />
-            <X className={"absolute w-5 h-5 transition-all duration-300 " + (isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0")} />
-          </button>
-        </nav>
-
-        {/* Mobile Menu Backdrop */}
-        <div 
-          className={"md:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-md transition-opacity duration-300 " + (isOpen ? "opacity-100" : "opacity-0 pointer-events-none")}
-          onClick={() => setIsOpen(false)}
-        />
-
-        {/* Mobile Menu Panel */}
-        <div 
-          className={"md:hidden fixed right-0 top-0 z-40 h-full w-72 bg-black/90 border-l border-white/10 backdrop-blur-xl flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] " + (isOpen ? "translate-x-0" : "translate-x-full")}
-        >
-          <div className="flex flex-col gap-2 px-6 pt-24">
-            {links.map((link, index) => (
-              <a 
-                key={link} 
-                href="#" 
-                className={"flex items-center rounded-xl px-4 py-3.5 text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-500 " + (isOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-6")}
-                style={{ transitionDelay: isOpen ? `${(index + 1) * 60}ms` : '0ms' }}
-              >
-                {link}
-              </a>
-            ))}
-          </div>
-          
-          <div 
-            className={"mt-auto px-6 pb-10 transition-all duration-400 flex flex-col gap-3 " + (isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}
-            style={{ transitionDelay: isOpen ? '300ms' : '0ms' }}
-          >
-            <Link href="/sign-up" className="w-full text-center rounded-full py-3.5 text-base font-medium text-white bg-gradient-cta hover:opacity-90 transition-opacity">
-              Get started
-            </Link>
-            <Link href="/sign-in" className="w-full text-center py-2 text-sm text-white/50 hover:text-white">
-              Sign in
-            </Link>
-          </div>
-        </div>
-
-        {/* Main Content */}
         <main className="mt-16 sm:mt-24 lg:mt-32 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-12 sm:gap-16">
           
           {/* Left Block: Headline & CTA */}

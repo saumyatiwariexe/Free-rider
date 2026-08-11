@@ -48,8 +48,9 @@ export async function GET(request: Request) {
       throw upsertError;
     }
 
-    // 4. Redirect seamlessly back to the dashboard!
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    // 4. Redirect back to integrations page with success banner
+    return NextResponse.redirect(new URL('/link-accounts?success=github', request.url));
+
 
   } catch (error: any) {
     console.error('[Link/GitHub] Sync Error:', error);
