@@ -1,31 +1,47 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+/**
+ * Lazy singletons — clients are created on first use, not at module load.
+ * This prevents boot-time crashes when env vars are checked before being needed.
+ */
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase env vars: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required.'
-  );
+let _browserClient: SupabaseClient | null = null;
+let _adminClient: SupabaseClient | null = null;
+
+function getEnv(key: string): string {
+  const val = process.env[key];
+  if (!val) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return val;
 }
 
 /**
  * Browser / client-component client.
  * Uses the anon key — subject to Row-Level Security.
  */
-export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+export function getSupabaseClient(): SupabaseClient {
+  if (!_browserClient) {
+    _browserClient = createClient(
+      getEnv('NEXT_PUBLIC_SUPABASE_URL'),
+      getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    );
+  }
+  return _browserClient;
+}
 
 /**
  * Server-only admin client.
  * Uses the service-role key — bypasses RLS.
  * NEVER expose this to the browser.
  */
-export function getSupabaseAdmin() {
-  if (!supabaseServiceKey) {
-    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY — this client must only be used server-side.');
+export function getSupabaseAdmin(): SupabaseClient {
+  if (!_adminClient) {
+    _adminClient = createClient(
+      getEnv('NEXT_PUBLIC_SUPABASE_URL'),
+      getEnv('SUPABASE_SERVICE_ROLE_KEY'),
+      { auth: { persistSession: false } }
+    );
   }
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
-  });
+  return _adminClient;
 }
