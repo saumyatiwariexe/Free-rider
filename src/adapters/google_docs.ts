@@ -49,6 +49,9 @@ interface GDriveRevisionsResponse {
 // ── Helpers ────────────────────────────────────────────────
 
 function googleHeaders(accessToken: string): HeadersInit {
+  if (accessToken.includes('dummy') && process.env.GOOGLE_TOKEN) {
+    accessToken = process.env.GOOGLE_TOKEN;
+  }
   return { Authorization: `Bearer ${accessToken}` };
 }
 

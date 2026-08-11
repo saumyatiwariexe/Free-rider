@@ -18,8 +18,8 @@ import type { RawEvent, ContributionEvent, FetchOptions, SourceAdapter } from '.
 import { cacheGet, cacheSet } from '@/lib/redis';
 
 const GITHUB_API = 'https://api.github.com';
-const MAX_PAGES = 3;        // max 300 commits per fetch (3 × 100)
-const STATS_CONCURRENCY = 5; // fetch N commit stats in parallel
+const MAX_PAGES = 1;        // cap at 100 commits to prevent Vercel 15s serverless function timeout
+const STATS_CONCURRENCY = 15; // fetch stats in parallel to drastically reduce processing time
 
 // ── Helpers ────────────────────────────────────────────────
 
