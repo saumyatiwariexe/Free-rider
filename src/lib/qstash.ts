@@ -1,12 +1,16 @@
 import { Client as QStashClient } from '@upstash/qstash';
 
-if (!process.env.QSTASH_TOKEN) {
-  throw new Error('Missing QSTASH_TOKEN env var.');
+/**
+ * Lazily create the QStash client on first use so the module can be imported
+ * at build time without throwing when QSTASH_TOKEN is not set.
+ */
+function getQStash(): QStashClient {
+  const token = process.env.QSTASH_TOKEN;
+  if (!token) {
+    throw new Error('Missing QSTASH_TOKEN env var.');
+  }
+  return new QStashClient({ token });
 }
-
-export const qstash = new QStashClient({
-  token: process.env.QSTASH_TOKEN,
-});
 
 /**
  * Publish a job to the worker endpoint via QStash.
@@ -21,7 +25,8 @@ export async function publishJob<T extends object>(payload: T): Promise<string> 
     throw new Error('Missing WORKER_URL env var — cannot publish job to QStash.');
   }
 
-  const response = await qstash.publishJSON({
+  const client = getQStash();
+  const response = await client.publishJSON({
     url: workerUrl,
     body: payload,
     retries: 3,
