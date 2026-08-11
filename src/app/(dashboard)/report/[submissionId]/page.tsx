@@ -33,7 +33,7 @@ export default async function ReportPage({ params }: { params: Promise<{ submiss
             <h2 className="text-xl font-medium tracking-tight mb-2">Report Processing</h2>
             <p className="text-sm text-white/50 max-w-sm mx-auto">Our workers are analyzing the repositories and APIs. This usually completes in under 5 seconds. Reload the page shortly.</p>
          </div>
-         <button onClick={() => {}} className="glass-button px-6 py-3 mt-4 text-xs font-semibold tracking-widest uppercase cursor-pointer" style={{ pointerEvents: 'none' }}>
+         <button className="glass-button px-6 py-3 mt-4 text-xs font-semibold tracking-widest uppercase cursor-pointer" style={{ pointerEvents: 'none' }}>
            Auto-Refreshing...
          </button>
        </div>

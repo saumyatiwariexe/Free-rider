@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { Code2, PenTool, FileText, CheckCircle2, Link as LinkIcon, Play, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
@@ -13,14 +13,31 @@ export default async function DashboardPage() {
   const db = getSupabaseAdmin();
 
   // Get user
-  const { data: user } = await db.from('users').select('id, name').eq('clerk_id', clerkId).single();
+  let { data: user } = await db.from('users').select('id, name').eq('clerk_id', clerkId).single();
+  
   if (!user) {
-    return (
-      <div className="flex h-[50vh] flex-col items-center justify-center p-8 text-white/40 gap-4">
-         <RefreshCw className="animate-spin" size={24} />
-         <p>Syncing user profile via webhooks...</p>
-      </div>
-    );
+    // Local dev fallback: If webhook didn't fire (e.g. no ngrok), insert user manually
+    const clerkUser = await currentUser();
+    if (clerkUser) {
+      const email = clerkUser.emailAddresses[0]?.emailAddress ?? '';
+      const name = `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Contributor';
+      const { data: newUser } = await db.from('users').insert({
+        clerk_id: clerkId,
+        email,
+        name,
+        avatar_url: clerkUser.imageUrl
+      }).select('id, name').single();
+      user = newUser;
+    }
+
+    if (!user) {
+      return (
+        <div className="flex h-[50vh] flex-col items-center justify-center p-8 text-white/40 gap-4">
+           <RefreshCw className="animate-spin" size={24} />
+           <p>Syncing user profile via webhooks...</p>
+        </div>
+      );
+    }
   }
 
   // Get linked accounts

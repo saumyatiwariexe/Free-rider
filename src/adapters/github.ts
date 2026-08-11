@@ -37,11 +37,16 @@ function parseRepoRef(sourceRef: string): { owner: string; repo: string } {
 }
 
 function githubHeaders(accessToken: string): HeadersInit {
-  return {
-    Authorization: `Bearer ${accessToken}`,
+  const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   };
+
+  if (accessToken && !accessToken.includes('dummy')) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  return headers;
 }
 
 // ── Types for GitHub API responses ─────────────────────────

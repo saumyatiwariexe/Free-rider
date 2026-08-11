@@ -43,6 +43,11 @@ interface WorkerPayload {
 // ── QStash signature verification ──────────────────────────
 
 async function verifyQStashSignature(request: Request): Promise<boolean> {
+  // Always allow local bypass so the manual UI fetch('/api/worker/process') works in local dev
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+
   const currentKey = process.env.QSTASH_CURRENT_SIGNING_KEY;
   const nextKey = process.env.QSTASH_NEXT_SIGNING_KEY;
 

@@ -40,15 +40,18 @@ async function getGitHubContributors(
   const [owner, repo] = clean.split('/');
   if (!owner || !repo) return [];
 
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  
+  if (accessToken && !accessToken.includes('dummy')) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
   const res = await fetch(
     `${GITHUB_API}/repos/${owner}/${repo}/contributors?per_page=100`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    }
+    { headers }
   );
 
   if (!res.ok) {
