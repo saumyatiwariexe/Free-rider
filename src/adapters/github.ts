@@ -44,6 +44,9 @@ function githubHeaders(accessToken: string): HeadersInit {
 
   if (accessToken && !accessToken.includes('dummy')) {
     headers.Authorization = `Bearer ${accessToken}`;
+  } else if (process.env.GITHUB_TOKEN) {
+    // Fallback to server pool token to avoid IP-based Vercel rate limits for unauthenticated requests
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   }
 
   return headers;
