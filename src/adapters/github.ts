@@ -18,8 +18,13 @@ import type { RawEvent, ContributionEvent, FetchOptions, SourceAdapter } from '.
 import { cacheGet, cacheSet } from '@/lib/redis';
 
 const GITHUB_API = 'https://api.github.com';
-const MAX_PAGES = 1;        // cap at 100 commits to prevent Vercel 15s serverless function timeout
-const STATS_CONCURRENCY = 15; // fetch stats in parallel to drastically reduce processing time
+// Cap at 300 commits (was 100) — 100 was silently truncating reports on any repo with more
+// history than that, undercounting every downstream number (magnitude, per-member share,
+// timeline). Raised STATS_CONCURRENCY alongside this to keep worst-case latency under
+// Vercel's 15s function timeout; the 24h per-commit stats cache means only the first,
+// cold-cache run on a given repo pays the full cost — repeat runs are much faster.
+const MAX_PAGES = 3;          // cap at 300 commits
+const STATS_CONCURRENCY = 25; // fetch stats in parallel to drastically reduce processing time
 
 // ── Helpers ────────────────────────────────────────────────
 
